@@ -28,7 +28,7 @@ Thumbs.db
 *.jks.old
 android/key.properties
 
-Supporting_docs/
+Supportingdocs/
 
 # crash logs
 *.log

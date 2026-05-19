@@ -1,4 +1,4 @@
-package com.example.ente_kottakkal_flutter_shell
+package com.entekottakkal.app
 
 import io.flutter.embedding.android.FlutterActivity
 

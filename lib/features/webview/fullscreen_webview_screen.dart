@@ -45,7 +45,6 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
-      ..setUserAgent(AppConfig.webViewUserAgent)
       ..addJavaScriptChannel(
         AppConfig.javaScriptChannelName,
         onMessageReceived: _nativeBridge.handleMessage,
@@ -82,11 +81,21 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
             });
           },
         ),
-      )
-      ..loadRequest(
-        AppConfig.initialUri,
-        headers: AppConfig.initialHeaders,
       );
+
+    unawaited(_loadInitialRequest());
+  }
+
+  Future<void> _loadInitialRequest() async {
+    final webViewUserAgent = AppConfig.webViewUserAgent;
+    if (webViewUserAgent != null) {
+      await _controller.setUserAgent(webViewUserAgent);
+    }
+
+    await _controller.loadRequest(
+      AppConfig.initialUri,
+      headers: AppConfig.initialHeaders,
+    );
   }
 
   @override
