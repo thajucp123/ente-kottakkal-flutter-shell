@@ -50,6 +50,7 @@ The app exists to package the Ente Kottakkal web experience as an Android mobile
 - App icon generation from `logo.png`.
 - WebView hosting for the Next.js site.
 - Page loading overlay while the WebView navigates.
+- Custom bilingual offline page when the main WebView page cannot load.
 - Android back button behavior for WebView history.
 - Double-back exit confirmation.
 - External link handling for `tel:`, `mailto:`, `sms:`, browser links, and similar schemes.
@@ -90,6 +91,7 @@ lib/
     external_link_service.dart
   widgets/
     app_toast.dart
+    offline_page.dart
     page_loader.dart
 ```
 
@@ -200,6 +202,10 @@ Custom lightweight toast overlay used by the Flutter shell. It is used for:
 
 Displays a loading overlay while WebView pages are loading.
 
+#### `lib/widgets/offline_page.dart`
+
+Displays a custom English/Malayalam offline page when the main WebView document fails to load. The page prompts the user to turn on Wi-Fi or mobile data and provides a retry button.
+
 ## 4. Dependencies
 
 Configured in `pubspec.yaml`.
@@ -302,6 +308,7 @@ The WebView:
 - Uses a white background.
 - Renders inside `SafeArea`, so it does not cover the Android status bar or navigation bar.
 - Shows a loading overlay while navigation is in progress.
+- Shows `OfflinePage` when the main WebView document fails to load, instead of showing the default Android WebView error page.
 
 ## 8. Back Button Behavior
 

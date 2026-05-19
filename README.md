@@ -38,6 +38,7 @@ flutter run --dart-define=WEBVIEW_URL=https://your-ngrok-url.ngrok-free.app
 - Native Android splash screen using `flutter_native_splash`.
 - Launcher icon generation using `flutter_launcher_icons`.
 - Loading overlay while WebView pages are loading.
+- Custom bilingual offline page for failed WebView loads.
 - Normal safe-area viewport, respecting Android status and navigation bars.
 - Android back button navigates WebView history.
 - Rapid double-back confirmation to exit the app.
@@ -62,6 +63,7 @@ lib/
     external_link_service.dart
   widgets/
     app_toast.dart
+    offline_page.dart
     page_loader.dart
 ```
 

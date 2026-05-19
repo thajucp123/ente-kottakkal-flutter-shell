@@ -10,9 +10,8 @@ class AppConfig {
   static final initialHeaders = initialUri.host.contains('ngrok')
       ? const {'ngrok-skip-browser-warning': 'true'}
       : const <String, String>{};
-  static final webViewUserAgent = initialUri.host.contains('ngrok')
-      ? 'EnteKottakkalWebView/1.0'
-      : null;
+  static final webViewUserAgent =
+      initialUri.host.contains('ngrok') ? 'EnteKottakkalWebView/1.0' : null;
   static const javaScriptChannelName = 'EnteKottakkal';
   static const exitPromptMessage = 'Press back again to exit';
 }

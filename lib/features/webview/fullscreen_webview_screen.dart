@@ -8,6 +8,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../../config/app_config.dart';
 import '../../services/external_link_service.dart';
 import '../../widgets/app_toast.dart';
+import '../../widgets/offline_page.dart';
 import '../../widgets/page_loader.dart';
 import 'native_bridge.dart';
 import 'webview_link_handler.dart';
@@ -32,6 +33,7 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
   OverlayEntry? _toastOverlay;
   var _isLoading = true;
   var _loadingProgress = 0;
+  var _hasPageLoadError = false;
 
   @override
   void initState() {
@@ -60,6 +62,7 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
             setState(() {
               _isLoading = true;
               _loadingProgress = 0;
+              _hasPageLoadError = false;
             });
           },
           onProgress: (progress) {
@@ -77,10 +80,12 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
             });
             unawaited(WebViewLinkHandler.install(_controller));
           },
-          onWebResourceError: (_) {
+          onWebResourceError: (error) {
+            if (error.isForMainFrame == false) return;
             if (!mounted) return;
             setState(() {
               _isLoading = false;
+              _hasPageLoadError = true;
             });
           },
         ),
@@ -94,6 +99,19 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
     if (webViewUserAgent != null) {
       await _controller.setUserAgent(webViewUserAgent);
     }
+
+    await _controller.loadRequest(
+      AppConfig.initialUri,
+      headers: AppConfig.initialHeaders,
+    );
+  }
+
+  Future<void> _retryInitialRequest() async {
+    setState(() {
+      _isLoading = true;
+      _loadingProgress = 0;
+      _hasPageLoadError = false;
+    });
 
     await _controller.loadRequest(
       AppConfig.initialUri,
@@ -250,6 +268,8 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
             child: Stack(
               children: [
                 Positioned.fill(child: WebViewWidget(controller: _controller)),
+                if (_hasPageLoadError)
+                  OfflinePage(onRetry: () => unawaited(_retryInitialRequest())),
                 if (_isLoading) PageLoader(progress: _loadingProgress),
               ],
             ),

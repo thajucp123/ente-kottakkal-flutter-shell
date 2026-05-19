@@ -279,8 +279,9 @@ class NativeBridge {
     );
     await _localNotifications.initialize(initializationSettings);
 
-    final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin =
+        _localNotifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
     await androidPlugin?.requestNotificationsPermission();
 
     _localNotificationsInitialized = true;
