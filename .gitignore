@@ -22,3 +22,13 @@ ios/Flutter/Flutter.podspec
 # OS
 .DS_Store
 Thumbs.db
+
+# Keystore
+*.jks
+*.jks.old
+android/key.properties
+
+Supporting_docs/
+
+# crash logs
+*.log
