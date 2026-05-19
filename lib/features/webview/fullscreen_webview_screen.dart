@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -40,6 +41,8 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
       openExternalUrl: _openExternalUrl,
       showToast: _showToast,
       showDialog: _showNativeDialog,
+      showConfirmDialog: _showConfirmDialog,
+      emitBridgeEvent: _emitBridgeEvent,
     );
 
     _controller = WebViewController()
@@ -145,6 +148,49 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
     );
   }
 
+  Future<bool> _showConfirmDialog({
+    required String title,
+    required String message,
+    required String confirmText,
+    required String cancelText,
+  }) async {
+    if (!mounted) return false;
+
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text(title),
+              content: Text(message),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(cancelText),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text(confirmText),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
+  Future<void> _emitBridgeEvent(
+    String event,
+    Map<String, dynamic> detail,
+  ) async {
+    final encodedEvent = jsonEncode(event);
+    final encodedDetail = jsonEncode(detail);
+    await _controller.runJavaScript('''
+      window.dispatchEvent(new CustomEvent($encodedEvent, {
+        detail: $encodedDetail
+      }));
+    ''');
+  }
+
   Future<void> _handleBackPressed() async {
     final now = DateTime.now();
     final exitPromptShownAt = _exitPromptShownAt;
@@ -175,6 +221,7 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
   }
 
   void _showExitPrompt() {
+    HapticFeedback.mediumImpact();
     _showToast(AppConfig.exitPromptMessage);
     _exitPromptShownAt = DateTime.now();
   }

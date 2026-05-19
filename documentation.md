@@ -30,6 +30,12 @@ The production fallback URL is configured in `lib/config/app_config.dart`. Durin
   - [10.1 Show Native Toast](#101-show-native-toast)
   - [10.2 Show Native Dialog](#102-show-native-dialog)
   - [10.3 Open External URL](#103-open-external-url)
+  - [10.4 Confirm Dialog](#104-confirm-dialog)
+  - [10.5 Local Notification](#105-local-notification)
+  - [10.6 Haptic And Vibration](#106-haptic-and-vibration)
+  - [10.7 Share Sheet](#107-share-sheet)
+  - [10.8 SharedPreferences Storage](#108-sharedpreferences-storage)
+  - [10.9 Push Notifications](#109-push-notifications)
 - [11. Web Links With Target Blank](#11-web-links-with-target-blank)
 - [12. Developer Commands](#12-developer-commands)
 - [13. Local Development With Ngrok](#13-local-development-with-ngrok)
@@ -139,6 +145,15 @@ Supported message types:
 - `openExternal`
 - `toast`
 - `dialog`
+- `confirm`
+- `localNotification`
+- `pushNotification`
+- `haptic`
+- `vibrate`
+- `share`
+- `storageSet`
+- `storageGet`
+- `storageRemove`
 
 #### `lib/features/webview/webview_link_handler.dart`
 
@@ -192,8 +207,12 @@ Configured in `pubspec.yaml`.
 ### Runtime Dependencies
 
 ```yaml
+flutter_local_notifications
+share_plus
+shared_preferences
 webview_flutter
 url_launcher
+vibration
 ```
 
 ### Development Dependencies
@@ -217,6 +236,8 @@ Important configuration:
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<uses-permission android:name="android.permission.VIBRATE" />
 ```
 
 This is required for the WebView to load the hosted web app.
@@ -375,6 +396,131 @@ window.EnteKottakkal?.postMessage(JSON.stringify({
   url: "https://example.com"
 }));
 ```
+
+### 10.4 Confirm Dialog
+
+Confirm dialogs return their result through a browser event named `EnteKottakkalResponse`.
+
+```js
+window.addEventListener("EnteKottakkalResponse", (event) => {
+  if (event.detail.type === "confirmResult") {
+    console.log(event.detail.requestId, event.detail.confirmed);
+  }
+});
+
+window.EnteKottakkal?.postMessage(JSON.stringify({
+  type: "confirm",
+  requestId: "confirm-1",
+  title: "Confirm",
+  message: "Do you want to continue?",
+  confirmText: "Continue",
+  cancelText: "Cancel"
+}));
+```
+
+### 10.5 Local Notification
+
+```js
+window.EnteKottakkal?.postMessage(JSON.stringify({
+  type: "localNotification",
+  id: 101,
+  title: "Ente Kottakkal",
+  message: "Your booking was updated"
+}));
+```
+
+### 10.6 Haptic And Vibration
+
+```js
+window.EnteKottakkal?.postMessage(JSON.stringify({
+  type: "haptic",
+  style: "medium"
+}));
+```
+
+Supported haptic styles:
+
+- `light`
+- `medium`
+- `heavy`
+- `selection`
+
+For direct vibration:
+
+```js
+window.EnteKottakkal?.postMessage(JSON.stringify({
+  type: "vibrate",
+  duration: 120
+}));
+```
+
+### 10.7 Share Sheet
+
+```js
+window.EnteKottakkal?.postMessage(JSON.stringify({
+  type: "share",
+  text: "https://ente-kottakkal-web.vercel.app/",
+  subject: "Ente Kottakkal"
+}));
+```
+
+### 10.8 SharedPreferences Storage
+
+Set a value:
+
+```js
+window.EnteKottakkal?.postMessage(JSON.stringify({
+  type: "storageSet",
+  requestId: "save-token",
+  key: "token",
+  value: "abc123"
+}));
+```
+
+Read a value:
+
+```js
+window.addEventListener("EnteKottakkalResponse", (event) => {
+  if (event.detail.type === "storageGetResult") {
+    console.log(event.detail.key, event.detail.value);
+  }
+});
+
+window.EnteKottakkal?.postMessage(JSON.stringify({
+  type: "storageGet",
+  requestId: "read-token",
+  key: "token"
+}));
+```
+
+Remove a value:
+
+```js
+window.EnteKottakkal?.postMessage(JSON.stringify({
+  type: "storageRemove",
+  requestId: "remove-token",
+  key: "token"
+}));
+```
+
+### 10.9 Push Notifications
+
+The bridge currently includes a `pushNotification` message type, but remote push notifications require Firebase project configuration before the app can return a real device token.
+
+```js
+window.addEventListener("EnteKottakkalResponse", (event) => {
+  if (event.detail.type === "pushNotificationResult") {
+    console.log(event.detail.supported, event.detail.message);
+  }
+});
+
+window.EnteKottakkal?.postMessage(JSON.stringify({
+  type: "pushNotification",
+  requestId: "push-token"
+}));
+```
+
+To make remote push notifications fully functional later, configure Firebase for Android, add the generated Firebase files, and wire `firebase_messaging` into the native bridge.
 
 ## 11. Web Links With Target Blank
 
