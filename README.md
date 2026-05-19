@@ -20,10 +20,16 @@ The WebView currently loads:
 https://ente-kottakkal-web.vercel.app/
 ```
 
-To change it, update:
+The production fallback URL is configured in:
 
 ```text
 lib/config/app_config.dart
+```
+
+For local development, pass a temporary URL at run/build time:
+
+```powershell
+flutter run --dart-define=WEBVIEW_URL=https://your-ngrok-url.ngrok-free.app
 ```
 
 ## Features
@@ -87,6 +93,14 @@ Run on a connected Android device or emulator:
 ```powershell
 flutter run
 ```
+
+Run with an ngrok development URL:
+
+```powershell
+flutter run --dart-define=WEBVIEW_URL=https://your-ngrok-url.ngrok-free.app
+```
+
+For ngrok URLs, the Flutter shell applies a custom WebView user agent and initial `ngrok-skip-browser-warning` header to avoid ngrok's browser warning page interfering with Next.js assets.
 
 Build a release APK:
 

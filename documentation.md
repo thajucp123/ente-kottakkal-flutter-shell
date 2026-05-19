@@ -2,13 +2,13 @@
 
 This project is a production-oriented Flutter shell app for the Ente Kottakkal web application. The native app is intentionally thin: it loads the hosted Next.js web app inside a WebView, while adding native mobile behavior where the web platform alone is not enough.
 
-Current web app URL:
+Default production web app URL:
 
 ```dart
 https://ente-kottakkal-web.vercel.app/
 ```
 
-The URL is configured in `lib/config/app_config.dart`.
+The production fallback URL is configured in `lib/config/app_config.dart`. During development, a temporary URL can be passed with `--dart-define=WEBVIEW_URL=...`.
 
 ## Table Of Contents
 
@@ -32,8 +32,9 @@ The URL is configured in `lib/config/app_config.dart`.
   - [10.3 Open External URL](#103-open-external-url)
 - [11. Web Links With Target Blank](#11-web-links-with-target-blank)
 - [12. Developer Commands](#12-developer-commands)
-- [13. Notes For Future Developers](#13-notes-for-future-developers)
-- [14. Current Known Scope](#14-current-known-scope)
+- [13. Local Development With Ngrok](#13-local-development-with-ngrok)
+- [14. Notes For Future Developers](#14-notes-for-future-developers)
+- [15. Current Known Scope](#15-current-known-scope)
 
 ## 1. Project Purpose
 
@@ -102,7 +103,10 @@ Defines the root `MaterialApp`. It currently loads `FullscreenWebViewScreen` as 
 
 Central location for app constants:
 
-- `initialUrl`: the hosted Next.js URL loaded by the WebView.
+- `productionUrl`: the hosted production Next.js URL.
+- `initialUrl`: the URL loaded by the WebView. It uses `WEBVIEW_URL` from `--dart-define` when provided, otherwise it falls back to `productionUrl`.
+- `initialHeaders`: request headers used for the initial WebView load. Ngrok URLs receive `ngrok-skip-browser-warning`.
+- `webViewUserAgent`: custom WebView user agent used for ngrok URLs so page assets and Next.js chunks avoid ngrok's browser warning behavior.
 - `javaScriptChannelName`: currently `EnteKottakkal`.
 - `exitPromptMessage`: text shown for double-back exit confirmation.
 
@@ -416,6 +420,19 @@ Build release APK:
 flutter build apk --release
 ```
 
+Run with a temporary development URL:
+<small>This is helpful in running the flutter app with the Next.js dev server address instead of the final production url. More details later.</small>
+
+```powershell
+flutter run --dart-define=WEBVIEW_URL=https://your-ngrok-url.ngrok-free.app
+```
+
+Build with a custom URL:
+
+```powershell
+flutter build apk --release --dart-define=WEBVIEW_URL=https://your-ngrok-url.ngrok-free.app
+```
+
 Regenerate launcher icons:
 
 ```powershell
@@ -428,7 +445,48 @@ Regenerate native splash screen:
 dart run flutter_native_splash:create
 ```
 
-## 13. Notes For Future Developers
+## 13. Local Development With Ngrok
+
+When developing the Next.js web app locally, use an ngrok tunnel so the Android phone can reach the dev server without depending on the machine's changing LAN IP address.
+
+Start the Next.js dev server:
+
+```powershell
+npm run dev
+```
+
+In another terminal, expose the local dev server:
+
+```powershell
+ngrok http 3000
+```
+
+Ngrok will show a public HTTPS forwarding URL, for example:
+
+```text
+https://your-ngrok-url.ngrok-free.app
+```
+
+Run the Flutter app with that URL:
+
+```powershell
+flutter run --dart-define=WEBVIEW_URL=https://your-ngrok-url.ngrok-free.app
+```
+
+This avoids editing Dart source files for each temporary dev URL. The production Vercel URL remains the fallback when `WEBVIEW_URL` is not provided.
+
+Because ngrok provides an HTTPS URL, Android cleartext HTTP configuration is normally not needed for this workflow.
+
+Some ngrok free URLs may show a browser warning page inside WebView. If the HTML document loads but the page is mostly white, with only static layout such as the root navbar visible, the usual cause is that Next.js JavaScript chunks or CSS assets are receiving the ngrok warning response instead of the real asset.
+
+The Flutter shell has two ngrok-specific protections:
+
+- `AppConfig.initialHeaders` sends `ngrok-skip-browser-warning: true` for the initial page load.
+- `AppConfig.webViewUserAgent` sets a custom WebView user agent for ngrok URLs so follow-up requests, including Next.js assets, are less likely to receive ngrok's browser warning page.
+
+If ngrok behavior changes later, verify the forwarded URL directly in a mobile browser and check the Next.js dev server terminal for failed asset requests.
+
+## 14. Notes For Future Developers
 
 - Keep app-wide constants in `AppConfig`.
 - Keep WebView-specific behavior under `lib/features/webview`.
@@ -438,7 +496,7 @@ dart run flutter_native_splash:create
 - Add new external scheme handling in `webview_link_handler.dart` and Android manifest `<queries>` if Android package visibility requires it.
 - Prefer keeping Flutter as a focused native shell unless a feature truly belongs outside the Next.js app.
 
-## 14. Current Known Scope
+## 15. Current Known Scope
 
 This app currently targets Android. iOS configuration exists in package settings, but iOS builds require macOS and Xcode.
 

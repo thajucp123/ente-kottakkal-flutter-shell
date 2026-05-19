@@ -45,6 +45,7 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
+      ..setUserAgent(AppConfig.webViewUserAgent)
       ..addJavaScriptChannel(
         AppConfig.javaScriptChannelName,
         onMessageReceived: _nativeBridge.handleMessage,
@@ -82,7 +83,10 @@ class _FullscreenWebViewScreenState extends State<FullscreenWebViewScreen> {
           },
         ),
       )
-      ..loadRequest(Uri.parse(AppConfig.initialUrl));
+      ..loadRequest(
+        AppConfig.initialUri,
+        headers: AppConfig.initialHeaders,
+      );
   }
 
   @override
