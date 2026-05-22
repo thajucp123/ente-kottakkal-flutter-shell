@@ -80,6 +80,9 @@ class NativeBridge {
         case 'share':
           unawaited(_handleShare(payload));
           break;
+        case 'exit':
+          unawaited(_handleExit(payload));
+          break;
         case 'storageSet':
           unawaited(_handleStorageSet(payload));
           break;
@@ -215,6 +218,28 @@ class NativeBridge {
       subject: _string(payload['subject']),
     );
   }
+
+  // Exits the app when the user confirms the exit action from JavaScript.
+   Future<void> _handleExit(Map<String, dynamic> payload) async {
+    final requestId = _requestId(payload);
+    final confirmed = await showConfirmDialog(
+      title: 'Exit App',
+      message: 'Are you sure you want to exit the app?',
+      confirmText: 'Exit',
+      cancelText: 'Cancel',
+    );
+
+    if (confirmed) {
+      // exits app on Android; on iOS, this will just pop the current view which is the closest equivalent
+      SystemNavigator.pop();
+    } else {
+      await _emitResult(
+        'exitResult',
+        requestId: requestId,
+        data: {'exited': false},
+      );
+    }
+  } 
 
   // Stores a string value in SharedPreferences.
   Future<void> _handleStorageSet(Map<String, dynamic> payload) async {

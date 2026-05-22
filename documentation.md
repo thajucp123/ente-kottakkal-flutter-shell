@@ -529,6 +529,16 @@ window.EnteKottakkal?.postMessage(JSON.stringify({
 
 To make remote push notifications fully functional later, configure Firebase for Android, add the generated Firebase files, and wire `firebase_messaging` into the native bridge.
 
+### 10.11 Exit the app
+
+```js
+window.EnteKottakkal?.postMessage(JSON.stringify({
+  type: "exit"
+}));
+```
+
+This will trigger a confirm dialogue box asking for user confirmation to exit.
+
 ## 11. Web Links With Target Blank
 
 The Flutter app injects a link handler into the WebView page.
